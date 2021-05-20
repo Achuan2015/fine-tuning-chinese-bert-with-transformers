@@ -1,6 +1,4 @@
-from transformers import AutoTokenizer
 from torch.utils.data import Dataset
-
 
 class SiameseDataset(Dataset):
     """
