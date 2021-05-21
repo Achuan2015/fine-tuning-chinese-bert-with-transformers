@@ -5,7 +5,6 @@ from tqdm.auto import tqdm
 import torch.nn as nn
 
 def train(dataloader, model, device, num_epoch=3):
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     optimizer = AdamW(model.parameters(), lr=5e-5)
     num_training_steps = num_epoch * len(dataloader)
     progress_bar = tqdm(range(num_training_steps))
@@ -19,8 +18,8 @@ def train(dataloader, model, device, num_epoch=3):
     for _ in range(num_epoch):
         for batch in dataloader:
             optimizer.zero_grad()
-            encoded_sent1 = batch['sent1']
-            encoded_sent2 = batch['sent2']
+            encoded_sent1 = {k: v.to(device) for k, v in batch['sent1'].items()}
+            encoded_sent2 = {k: v.to(device) for k, v in batch['sent2'].items()}
             y = batch['label'].to(device)
             output_sent1, output_sent2 = model(encoded_sent1, encoded_sent2)
             # 因为 labels的取值是[0, 1], 而CosineEmbeddingLoss中要求label取值范围在[-1, 1]之间
