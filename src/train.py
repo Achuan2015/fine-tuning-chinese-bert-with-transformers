@@ -15,7 +15,7 @@ def run():
     """
     output_dir = "outputs/"
     data_path = "data/sample_50_1.csv"
-    model_path = "src/inputs/chinese_wwm_pytorch"
+    model_path = "inputs/chinese_wwm_pytorch"
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     sent1, sent2, labels = read_data(data_path)
