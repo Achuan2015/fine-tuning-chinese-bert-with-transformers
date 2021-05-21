@@ -17,3 +17,14 @@ def encode_data(querys, candidates, labels):
     encoded_candidate = tokenizer(candidates, padding=True, truncation=True, max_length=128, return_tensors="pt")
     labels = torch.tensor(labels)
     return encoded_query, encoded_candidate, labels
+
+def collate_fn(batch, device):
+    batch_data = {}
+    for d in batch:
+        for key, value in d.items():
+            if key == 'label':
+                value = value.to(device)
+            else:
+                value = {k: v.to(device) for k, v in value.items()}
+        batch_data[key] = value
+    return batch_data
