@@ -7,6 +7,7 @@ from model import BertForSiameseNetwork
 from siamese_dataset import SiameseDataset
 from transformers import BertConfig
 from engine import train
+from engine import test
 from transformers import BertTokenizer
 
 
@@ -14,7 +15,7 @@ def run():
     """
     reference: https://huggingface.co/transformers/custom_datasets.html?highlight=datasets
     """
-    output_dir = "outputs/"
+    output_dir = "outputs/model_50_1"
     data_path = "data/sample_50_1.csv"
     model_path = "inputs/chinese_wwm_pytorch"
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -34,7 +35,10 @@ def run():
     config = BertConfig.from_pretrained(model_path)
     model = BertForSiameseNetwork(model_path, config)
     model = model.to(device)
+
     train(train_dataloader, model, device)
+    test(eval_dataloader, model, device)
+    
     model_to_save = model.module if hasattr(model, 'module') else model
     model_to_save.save_pretrained(output_dir)
     tokenizer.save_pretrained(output_dir)

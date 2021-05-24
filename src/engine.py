@@ -1,8 +1,16 @@
+"""
+reference: https://huggingface.co/transformers/training.html#trainer
+"""
+
+
+
 from transformers import AdamW
 from transformers import get_scheduler
 import torch
 from tqdm.auto import tqdm
 import torch.nn as nn
+import torch.nn.functional as F
+from datasets import load_metric
 
 def train(dataloader, model, device, num_epoch=3):
     optimizer = AdamW(model.parameters(), lr=5e-5)
@@ -31,7 +39,20 @@ def train(dataloader, model, device, num_epoch=3):
 
             progress_bar.update(1)
 
-    model.eval()
-
 def test(dataloader, model, device):
-    pass
+    THRESHOLD = 0.9
+    metric = load_metric('accuracy')
+    model.eval()
+    for batch in dataloader:
+        encoded_eval_sent1 = {k: v.to(device) for k, v in batch['sent1'].items()}
+        encoded_eval_sent2 = {k: v.to(device) for k, v in batch['sent2'].items()}
+        with torch.no_grad():
+            sent1_output = model.encode(encoded_eval_sent1)
+            sent2_output = model.encode(encoded_eval_sent2)
+        
+        sim_score = F.cosine_similarity(sent1_output, sent2_output)
+        sim_score = sim_score.cpu()
+        predictions = sim_score.apply_(lambda x: 1.0 if x >= THRESHOLD else 0)
+        metric.add_batch(predictions=predictions, references=batch['label'])
+    result = metric.compute()
+    print(result)
