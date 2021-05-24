@@ -7,6 +7,7 @@ from model import BertForSiameseNetwork
 from siamese_dataset import SiameseDataset
 from transformers import BertConfig
 from engine import train
+from transformers import BertTokenizer
 
 
 def run():
@@ -17,11 +18,12 @@ def run():
     data_path = "data/sample_50_1.csv"
     model_path = "inputs/chinese_wwm_pytorch"
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    tokenizer = BertTokenizer.from_pretrained(model_path)
 
     sent1, sent2, labels = read_data(data_path)
     train_sent1, eval_sent1, train_sent2, eval_sent2, train_label, eval_label =  train_test_split(sent1, sent2, labels, test_size=0.1, random_state=42)
-    encoded_train_sent1, encoded_train_sent2, train_label= encode_data(train_sent1, train_sent2, train_label)
-    encoded_eval_sent1, encoded_eval_sent2, eval_label= encode_data(eval_sent1, eval_sent2, eval_label)
+    encoded_train_sent1, encoded_train_sent2, train_label= encode_data(train_sent1, train_sent2, train_label, tokenizer)
+    encoded_eval_sent1, encoded_eval_sent2, eval_label= encode_data(eval_sent1, eval_sent2, eval_label, tokenizer)
     
     train_dataset = SiameseDataset(encoded_train_sent1, encoded_train_sent2, train_label)
     eval_dataset = SiameseDataset(encoded_eval_sent1, encoded_eval_sent2, eval_label)
@@ -31,9 +33,11 @@ def run():
     
     config = BertConfig.from_pretrained(model_path)
     model = BertForSiameseNetwork(model_path, config)
+    model = model.to(device)
     train(train_dataloader, model, device)
     model_to_save = model.module if hasattr(model, 'module') else model
     model_to_save.save_pretrained(output_dir)
+    tokenizer.save_pretrained(output_dir)
 
 if __name__ == "__main__":
     run()

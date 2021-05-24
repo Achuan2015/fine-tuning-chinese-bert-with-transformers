@@ -16,8 +16,9 @@ class BertForSiameseNetwork(BertPreTrainedModel):
         self.bert = BertModel.from_pretrained(model_path)
 
     def encode(self, encoded_input):
-        model_output = self.bert(encoded_input)
-        return model_output
+        model_output = self.bert(**encoded_input)
+        input_embedding = self.mean_pooling(model_output, encoded_input['attention_mask'])
+        return input_embedding
     
     def mean_pooling(self, model_output, attention_mask):
         token_embedding = model_output[0]
@@ -29,9 +30,7 @@ class BertForSiameseNetwork(BertPreTrainedModel):
         return sum_embddings / sum_mask
     
     def forward(self, encoded_sent1, encoded_sent2):
-        sent1_output = self.bert(**encoded_sent1)
-        sent2_output = self.bert(**encoded_sent2)
-        sent1_embedding = self.mean_pooling(sent1_output, encoded_sent1['attention_mask'])
-        sent2_embedding = self.mean_pooling(sent2_output, encoded_sent1['attention_mask'])
+        sent1_embedding = self.encode(encoded_sent1)
+        sent2_embedding = self.encode(encoded_sent2)
         # cos_score = F.cosine_similarity(sent1_embedding, sent2_embedding, dim=1)
         return sent1_embedding, sent2_embedding
