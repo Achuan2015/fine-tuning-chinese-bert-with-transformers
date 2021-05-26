@@ -2,8 +2,6 @@
 reference: https://huggingface.co/transformers/training.html#trainer
 """
 
-
-
 from transformers import AdamW
 from transformers import get_scheduler
 import torch
@@ -12,7 +10,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from datasets import load_metric
 
-def train(dataloader, model, device, num_epoch=3):
+
+def train_siamese(dataloader, model, device, num_epoch=3):
     optimizer = AdamW(model.parameters(), lr=5e-5)
     num_training_steps = num_epoch * len(dataloader)
     progress_bar = tqdm(range(num_training_steps))
@@ -39,7 +38,7 @@ def train(dataloader, model, device, num_epoch=3):
 
             progress_bar.update(1)
 
-def test(dataloader, model, device):
+def test_siamese(dataloader, model, device):
     THRESHOLD = 0.9
     metric = load_metric('accuracy')
     model.eval()
@@ -56,3 +55,31 @@ def test(dataloader, model, device):
         metric.add_batch(predictions=predictions, references=batch['label'])
     result = metric.compute()
     print(result)
+
+def train_cross_encoder(dataloader, model, device, num_epoch=3):
+    optimizer = AdamW(model.parameters(), lr=5e-5)
+    num_training_steps = num_epoch * len(dataloader)
+    progress_bar = tqdm(range(num_training_steps))
+    lr_scheduler = get_scheduler(
+        "linear",
+        optimizer=optimizer,
+        num_warmup_steps=0,
+        num_training_steps=num_training_steps
+    )
+    for _ in range(num_epoch):
+        for batch in dataloader:
+            optimizer.zero_grad()
+            encoded_data = {k:v.to(device) for k,v in batch.items()}
+            output = model(**encoded_data)
+
+            loss = output[0]
+            loss.backward()
+             # 梯度剪枝，避免梯度爆炸
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            optimizer.step()
+            lr_scheduler.step()
+
+            progress_bar.update(1)
+
+def test_cross_encoder(dataloader, model, device, num_epoch=3):
+    pass

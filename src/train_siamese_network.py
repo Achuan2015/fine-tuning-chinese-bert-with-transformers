@@ -4,7 +4,7 @@ from data_util import encode_data
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 from model import BertForSiameseNetwork
-from siamese_dataset import SiameseDataset
+from dataset import SiameseDataset
 from transformers import BertConfig
 from engine import train
 from engine import test
@@ -15,9 +15,10 @@ def run():
     """
     reference: https://huggingface.co/transformers/custom_datasets.html?highlight=datasets
     """
-    output_dir = "outputs/model_50_1"
+    output_dir = "outputs/TinyBert-50-1"
     data_path = "data/sample_50_1.csv"
-    model_path = "inputs/chinese_wwm_pytorch"
+    # model_path = "inputs/chinese_wwm_pytorch"
+    model_path = "/data/projects/TinyBERT_4L_zh"
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     tokenizer = BertTokenizer.from_pretrained(model_path)
 

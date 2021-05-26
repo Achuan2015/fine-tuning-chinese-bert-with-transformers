@@ -19,3 +19,18 @@ class SiameseDataset(Dataset):
     
     def __len__(self):
         return len(self.labels)
+
+
+class CrossEncodeDataset(Dataset):
+    
+    def __init__(self, encoded_data, labels):
+        self.encoded_data = encoded_data
+        self.labels = labels
+    
+    def __getitem__(self, idx):
+        item = {key: val[idx] for key, val in self.encoded_data.items()}
+        item['labels'] = self.labels[idx]
+        return item
+    
+    def __len__(self):
+        return len(self.labels)

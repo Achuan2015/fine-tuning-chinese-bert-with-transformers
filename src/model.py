@@ -5,7 +5,6 @@ import torch.nn as nn
 import torch.functional as F
 
 
-
 class BertForSiameseNetwork(BertPreTrainedModel):
     """
     reference: https://github.com/UKPLab/sentence-transformers/blob/master/sentence_transformers/models/Transformer.py
