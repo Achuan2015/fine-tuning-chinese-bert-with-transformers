@@ -6,8 +6,8 @@ from torch.utils.data import DataLoader
 from model import BertForSiameseNetwork
 from dataset import SiameseDataset
 from transformers import BertConfig
-from engine import train
-from engine import test
+from engine import train_siamese
+from engine import test_siamese
 from transformers import BertTokenizer
 
 
@@ -37,8 +37,8 @@ def run():
     model = BertForSiameseNetwork(model_path, config)
     model = model.to(device)
 
-    train(train_dataloader, model, device)
-    test(eval_dataloader, model, device)
+    train_siamese(train_dataloader, model, device)
+    test_siamese(eval_dataloader, model, device)
     
     model_to_save = model.module if hasattr(model, 'module') else model
     model_to_save.save_pretrained(output_dir)
