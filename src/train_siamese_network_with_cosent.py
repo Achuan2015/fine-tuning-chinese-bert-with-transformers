@@ -3,11 +3,11 @@ from data_util import read_data, read_atec_data
 from data_util import encode_data
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
-from model import BertForSiameseNetwork
+from model import BertForCoSentNetwork
 from dataset import SiameseDataset
 from transformers import BertConfig
-from engine import train_siamese
-from engine import test_siamese
+from engine import train_siamese_with_cosent
+from engine import test_siamese_with_cosent
 from transformers import BertTokenizer
 
 
@@ -15,8 +15,8 @@ def run():
     """
     reference: https://huggingface.co/transformers/custom_datasets.html?highlight=datasets
     """
-    # output_dir = "outputs/TinyBert-50-1"
-    output_dir = "outputs/chinese_wwm_pytorch-siamese"
+    # output_dir = "outputs/TinyBert-50-1-cosent"
+    output_dir = "outputs/chinese_wwm_pytorch-50-1-cosent"
     data_path = "data/sample_50_1.csv"
     model_path = "inputs/chinese_wwm_pytorch"
     # model_path = "/data/projects/TinyBERT_4L_zh"
@@ -35,19 +35,19 @@ def run():
     eval_dataloader = DataLoader(eval_dataset, batch_size=192, shuffle=True)
     
     config = BertConfig.from_pretrained(model_path)
-    model = BertForSiameseNetwork(model_path, config)
+    model = BertForCoSentNetwork(model_path, config)
     model = model.to(device)
 
-    train_siamese(train_dataloader, model, device)
-    test_siamese(eval_dataloader, model, device)
+    train_siamese_with_cosent(train_dataloader, model, device)
+    test_siamese_with_cosent(eval_dataloader, model, device)
     
     model_to_save = model.module if hasattr(model, 'module') else model
     model_to_save.save_pretrained(output_dir)
     tokenizer.save_pretrained(output_dir)
 
 def eval():
-    model_path = "outputs/TinyBert-50-1"
-    # model_path = "outputs/chinese_wwm_pytorch-siamese"
+    model_path = "outputs/TinyBert-50-1-cosent"
+    # model_path = "outputs/chinese_wwm_pytorch-50-1-cosent"
     data_path = "/data/data-lakes/atec/atec_dataset_test.csv"
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -59,10 +59,11 @@ def eval():
     dataloader = DataLoader(dataset, batch_size=192, shuffle=True)
 
     config = BertConfig.from_pretrained(model_path)
-    model = BertForSiameseNetwork(model_path, config)
+    model = BertForCoSentNetwork(model_path, config)
     model = model.to(device)
 
-    test_siamese(dataloader, model, device)
+    test_siamese_with_cosent(dataloader, model, device)
+
 
 if __name__ == "__main__":
     # run()
