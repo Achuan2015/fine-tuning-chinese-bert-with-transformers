@@ -18,8 +18,8 @@ def read_atec_data(path):
     
 
 def encode_data(querys, candidates, labels, tokenizer):
-    encoded_query = tokenizer(querys, padding=True, truncation=True, max_length=128, return_tensors="pt")
-    encoded_candidate = tokenizer(candidates, padding=True, truncation=True, max_length=128, return_tensors="pt")
+    encoded_query = tokenizer(querys, padding=True, truncation=True, max_length=256, return_tensors="pt")
+    encoded_candidate = tokenizer(candidates, padding=True, truncation=True, max_length=256, return_tensors="pt")
     labels = torch.tensor(labels)
     return encoded_query, encoded_candidate, labels
 
