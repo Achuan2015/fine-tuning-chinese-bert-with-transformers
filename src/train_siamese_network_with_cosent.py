@@ -15,10 +15,11 @@ def run():
     """
     reference: https://huggingface.co/transformers/custom_datasets.html?highlight=datasets
     """
-    output_dir = "outputs/TinyBert-58-1-cosent-huaxia-v2"
+    output_dir = "outputs/TinyBert-2-cosent-bot-v2"
     #output_dir = "outputs/TinyBert-58-1-cosent-huaxia"
     #output_dir = "outputs/chinese_wwm_pytorch-58-1-cosent"
-    data_path = "data/huaxia_faq_58_1.csv"
+    data_path = "data/bot_corpus_20220517_v1.csv"
+    #data_path = "data/bot_train_20220516_8_2.csv"
     # model_path = "inputs/chinese_wwm_pytorch"
     model_path = "/data/projects/TinyBERT_4L_zh"
     device = torch.device('cuda:3') if torch.cuda.is_available() else torch.device('cpu')

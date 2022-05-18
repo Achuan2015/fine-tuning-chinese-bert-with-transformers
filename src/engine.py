@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from datasets import load_metric
 
 
-def train_siamese_with_cosent(dataloader, model, device, num_epoch=3):
+def train_siamese_with_cosent(dataloader, model, device, num_epoch=4):
     optimizer = AdamW(model.parameters(), lr=5e-5)
     num_training_steps = num_epoch * len(dataloader)
     progress_bar = tqdm(range(num_training_steps))
