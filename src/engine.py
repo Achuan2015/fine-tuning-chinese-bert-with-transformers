@@ -2,6 +2,7 @@
 reference: https://huggingface.co/transformers/training.html#trainer
 """
 
+from click import progressbar
 from transformers import AdamW
 from transformers import get_scheduler
 import torch
@@ -11,14 +12,36 @@ import torch.nn.functional as F
 from datasets import load_metric
 
 
-def train_siamese_with_cosent(dataloader, model, device, num_epoch=4):
+def train_siamese_with_multi_label(dataloader, model, device, num_epoch=2):
     optimizer = AdamW(model.parameters(), lr=5e-5)
     num_training_steps = num_epoch * len(dataloader)
     progress_bar = tqdm(range(num_training_steps))
     lr_scheduler = get_scheduler(
         "linear",
         optimizer=optimizer,
-        num_warmup_steps=0,
+        num_warmup_steps=1000,
+        num_training_steps=num_training_steps
+    )
+    for _ in range(num_epoch):
+        for batch in dataloader:
+            optimizer.zero_grad()
+            encoded_text = {k: v.to(device) for k, v in batch['text'].items()}
+            y = batch['label'].to(device)
+            _, loss = model(encoded_text, multi_label_ids=y)
+            loss.backward()
+            optimizer.step()
+            lr_scheduler.step()
+            progress_bar.update(1)
+
+
+def train_siamese_with_cosent(dataloader, model, device, num_epoch=3):
+    optimizer = AdamW(model.parameters(), lr=5e-5)
+    num_training_steps = num_epoch * len(dataloader)
+    progress_bar = tqdm(range(num_training_steps))
+    lr_scheduler = get_scheduler(
+        "linear",
+        optimizer=optimizer,
+        num_warmup_steps=1000,
         num_training_steps=num_training_steps
     )
     for _ in range(num_epoch):
@@ -27,7 +50,7 @@ def train_siamese_with_cosent(dataloader, model, device, num_epoch=4):
             encoded_sent1 = {k: v.to(device) for k, v in batch['sent1'].items()}
             encoded_sent2 = {k: v.to(device) for k, v in batch['sent2'].items()}
             y = batch['label'].to(device)
-            _, _, loss = model(encoded_sent1, encoded_sent2, y)
+            _, _, loss = model(encoded_sent1, encoded_sent2=encoded_sent2, label_ids=y)
             loss.backward()
             optimizer.step()
             lr_scheduler.step()
