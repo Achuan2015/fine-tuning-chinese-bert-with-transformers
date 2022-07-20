@@ -114,14 +114,17 @@ class BertForCoSentNetwork(BertPreTrainedModel):
         sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
         return sum_embddings / sum_mask
     
-    def forward(self, encoded_sent1, encoded_sent2, label_ids=None, λ=20):
+    def forward(self, encoded_sent1, encoded_sent2=None, label_ids=None, λ=20):
         sent1_embedding = self.encode(encoded_sent1)   # batch_size * hidden_size
-        sent2_embedding = self.encode(encoded_sent2)   # batch_size * hidden_size
+        if encoded_sent2 is not None:
+            sent2_embedding = self.encode(encoded_sent2)   # batch_size * hidden_size
+            sent2_norm_embedding = F.normalize(sent2_embedding, p=2, dim=1, eps=1e-8)  # l2 正则化
         # cos_score = F.cosine_similarity(sent1_embedding, sent2_embedding, dim=1)
         sent1_norm_embedding = F.normalize(sent1_embedding, p=2, dim=1, eps=1e-8)  # l2 正则化
-        sent2_norm_embedding = F.normalize(sent2_embedding, p=2, dim=1, eps=1e-8)  # l2 正则化
+        # 既没有二分类标签，也没有多分类标签
         if label_ids is None:
-            return sent1_norm_embedding, sent2_norm_embedding
+            return (sent1_norm_embedding, sent2_norm_embedding) if encoded_sent2 is not None else sent1_norm_embedding
+
         sent_cosine = torch.sum(sent1_norm_embedding * sent2_norm_embedding, dim=1) * λ # [batch_size]
         sent_cosine_diff = sent_cosine[:, None] - sent_cosine[None, :]  # 实现 si - sj 的粗结果 (未进行条件 si < sj 的筛选)
         labels = label_ids[:, None] < label_ids[None, ]  # 进行条件 si < sj 的筛选, 不满足条件的都是 False
