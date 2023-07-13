@@ -15,12 +15,15 @@ def run():
     """
     reference: https://huggingface.co/transformers/custom_datasets.html?highlight=datasets
     """
-    output_dir = "outputs/TinyBert-2-cosent-bot-v5"
+    #output_dir = "outputs/TinyBert-2-cosent-bot-v5"
     #output_dir = "outputs/chinese_wwm_pytorch-58-1-cosent"
-    data_path = "/data/projects/negative-sample-with-KMeans/output_data/bot_train_20220620_v1_15_1.csv"
-    # model_path = "inputs/chinese_wwm_pytorch"
-    model_path = "/data/projects/TinyBERT_4L_zh"
-    device = torch.device('cuda:3') if torch.cuda.is_available() else torch.device('cpu')
+    output_dir = "outputs/chinese_wwm_pytorch-50-5-cosent-v1"
+    #data_path = "/data/projects/negative-sample-with-KMeans/output_data/bot_train_20220620_v1_15_1.csv"
+    data_path = "/data/projects/negative-sample-with-KMeans/output_data/bot_train_20231113_n_cluster50_rate5_v1_50_5.csv"
+    model_path = "inputs/chinese_wwm_pytorch"
+    #model_path = "/data/projects/TinyBERT_4L_zh"
+    torch.cuda.set_device(3)
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     tokenizer = BertTokenizer.from_pretrained(model_path)
     print("当前使用GPU :", torch.cuda.current_device())
     sent1, sent2, labels = read_data(data_path)
@@ -49,10 +52,11 @@ def run():
     tokenizer.save_pretrained(output_dir)
 
 def eval():
-    model_path = "outputs/TinyBert-50-1-cosent"
+    #model_path = "outputs/TinyBert-50-1-cosent"
     #model_path = "outputs/TinyBert-58-1-cosent-huaxia"
     #model_path = "outputs/chinese_wwm_pytorch-50-1-cosent"
-    model_path = "outputs/chinese_wwm_pytorch-50-1-cosent"
+    #model_path = "outputs/chinese_wwm_pytorch-50-1-cosent"
+    model_path = "outputs/chinese_wwm_pytorch-50-5-cosent-v1"
     data_path = "/data/data-lakes/atec/atec_dataset_test.csv"
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')

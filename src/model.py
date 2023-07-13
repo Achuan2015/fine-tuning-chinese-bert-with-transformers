@@ -135,3 +135,31 @@ class BertForCoSentNetwork(BertPreTrainedModel):
         sent_cosine_exp = torch.cat((torch.zeros(1).to(sent_cosine_exp.device), sent_cosine_exp.view(-1)), dim=0)
         loss =  torch.logsumexp(sent_cosine_exp, dim=0)
         return sent1_norm_embedding, sent2_norm_embedding, loss
+
+
+
+class BertForCoSentNetworkTC(BertPreTrainedModel):
+
+    def __init__(self, model_path, config):
+        super().__init__(config)
+        self.bert = BertModel.from_pretrained(model_path)
+
+    def encode(self, encoded_input):
+        model_output = self.bert(**encoded_input)
+        input_embedding = self.mean_pooling(model_output, encoded_input['attention_mask'])
+        return input_embedding
+    
+    def mean_pooling(self, model_output, attention_mask):
+        token_embedding = model_output[0]
+        input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embedding.size()).float()
+        # sum columns
+        sum_embddings = torch.sum(token_embedding * input_mask_expanded, 1) 
+        # sum_mask
+        sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
+        return sum_embddings / sum_mask
+    
+    def forward(self, input_ids, token_type_ids, attention_mask, λ=20):
+        encoded_sent1 = {'input_ids': input_ids, 'token_type_ids':token_type_ids, 'attention_mask':attention_mask}
+        sent1_embedding = self.encode(encoded_sent1)   # batch_size * hidden_size
+        sent1_norm_embedding = F.normalize(sent1_embedding, p=2, dim=1, eps=1e-8)  # l2 正则化
+        return sent1_norm_embedding
